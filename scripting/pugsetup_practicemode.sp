@@ -2,6 +2,7 @@
 #include <sdkhooks>
 #include <sdktools>
 #include <sourcemod>
+#include <clients>
 #include "include/logdebug.inc"
 #include "include/pugsetup.inc"
 #include "include/pugsetup_practicemode.inc"
@@ -10,6 +11,10 @@
 
 #pragma semicolon 1
 #pragma newdecls required
+
+#define SPEC 1
+#define TEAM1 2
+#define TEAM2 3
 
 bool g_InPracticeMode = false;
 
@@ -116,6 +121,10 @@ public void OnPluginStart() {
         g_GrenadeHistoryPositions[i] = new ArrayList(3);
         g_GrenadeHistoryAngles[i] = new ArrayList(3);
     }
+    
+    // utility
+    RegConsoleCmd("sm_gospec", Command_GoSpec);
+    AddChatAlias(".spec", "sm_gospec");
 
     // Grenade history commands
     RegConsoleCmd("sm_grenadeback", Command_GrenadeBack);
@@ -363,6 +372,7 @@ public void OnHelpCommand(int client, ArrayList replyMessages, int maxMessageSiz
             PugSetupMessage(client, "{LIGHT_GREEN}.noclip {NORMAL}to enter/exit noclip mode");
         PugSetupMessage(client, "{LIGHT_GREEN}.back {NORMAL}to go to your last grenade position");
         PugSetupMessage(client, "{LIGHT_GREEN}.forward {NORMAL}to go to your next grenade position");
+        PugSetupMessage(client, "{LIGHT_GREEN}.spec {NORMAL}to join the spectators");
         PugSetupMessage(client, "{LIGHT_GREEN}.save <name> {NORMAL}to save a grenade position");
         PugSetupMessage(client, "{LIGHT_GREEN}.nades [player] {NORMAL}to view all saved grenades");
         PugSetupMessage(client, "{LIGHT_GREEN}.desc <description> {NORMAL}to add a nade description");
@@ -690,6 +700,15 @@ public Action Command_GotoNade(int client, int args) {
         } else {
             PugSetupMessage(client, "Usage: .goto [player] <grenadeid>");
         }
+    }
+
+    return Plugin_Handled;
+}
+
+public Action Command_GoSpec(int client, int args) {
+    if (g_InPracticeMode) {
+        if (IsPlayerAlive(client)) ForcePlayerSuicide(client);
+        ChangeClientTeam(client, SPEC);
     }
 
     return Plugin_Handled;
